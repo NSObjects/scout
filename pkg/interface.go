@@ -10,6 +10,12 @@
 
 package pkg
 
+import "github.com/NSObjects/scout/internal/finger"
+
 type PluginCDN interface {
 	Lookup(ip string) (bool, error)
+}
+
+type PluginFinger interface {
+	Scan(url string) (finger.ScanResult, error)
 }

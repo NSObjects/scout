@@ -13,8 +13,8 @@ package cdn
 import (
 	"fmt"
 	"github.com/NSObjects/scout/internal/dns"
-	"github.com/NSObjects/scout/internal/plugin"
 	"github.com/NSObjects/scout/pkg"
+	"github.com/NSObjects/scout/pkg/plugin"
 	"regexp"
 )
 
