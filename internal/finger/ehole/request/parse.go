@@ -16,16 +16,23 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/go-resty/resty/v2"
 	"github.com/twmb/murmur3"
-	"io/ioutil"
 	"log"
 	"math/rand"
-	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
 	"time"
 )
+
+var client = resty.New()
+
+func init() {
+	client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+
+	client.SetTimeout(10 * time.Second)
+}
 
 func title(httpBody string) string {
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(httpBody))
@@ -66,36 +73,15 @@ func favicon(httpBody string, address string) (string, error) {
 }
 
 func faviconHash(host string) (string, error) {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-
-	client := http.Client{
-		Timeout:   8 * time.Second,
-		Transport: tr,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse /* 不进入重定向 */
-		},
-	}
-	resp, err := client.Get(host)
+	client.R().SetHeader("User-Agent", RandUserAgent())
+	resp, err := client.R().Get(host)
 	if err != nil {
 		return "", err
 	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusOK {
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return "", err
-		}
-		return Mmh3Hash32(StandBase64(body))
-	}
-
-	return "", nil
+	return mmh3Hash32(standBase64(resp.Body()))
 }
 
-func Mmh3Hash32(raw []byte) (string, error) {
+func mmh3Hash32(raw []byte) (string, error) {
 	h32 := murmur3.New32()
 	_, err := h32.Write(raw)
 	if err != nil {
@@ -105,7 +91,7 @@ func Mmh3Hash32(raw []byte) (string, error) {
 	return fmt.Sprintf("%d", int32(h32.Sum32())), nil
 }
 
-func StandBase64(raw []byte) []byte {
+func standBase64(raw []byte) []byte {
 	bcs := base64.StdEncoding.EncodeToString(raw)
 	var buffer bytes.Buffer
 	for i := 0; i < len(bcs); i++ {
@@ -149,7 +135,7 @@ func RandUserAgent() string {
 	return ua[rand.Intn(len(ua))]
 }
 
-func JsJump(str string, url string) []string {
+func jsJump(str string, url string) []string {
 	regs := []string{`(window|top)\.location\.href = "(.*?)"`, `redirectUrl = "(.*?)"`, `<meta.*?http-equiv=.*?refresh.*?Url=(.*?)>`}
 	var results []string
 	for _, reg := range regs {

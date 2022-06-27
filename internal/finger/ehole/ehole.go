@@ -59,11 +59,11 @@ func (s *FinScan) Scan(url string) (finger.ScanResult, error) {
 
 	out := finger.ScanResult{Url: data.Url, Cms: cmss, Server: data.Server, StatusCode: data.StatusCode, Length: data.Length, Title: data.Title}
 	if len(out.Cms) != 0 {
-		outstr := fmt.Sprintf("[ %s | %s | %s | %d | %d | %s ]", out.Url, out.Cms, out.Server, out.StatusCode, out.Length, out.Title)
-		color.RGBStyleFromString("237,64,35").Println(outstr)
+		outStr := fmt.Sprintf("[ %s | %s | %s | %d | %d | %s ]", out.Url, out.Cms, out.Server, out.StatusCode, out.Length, out.Title)
+		color.RGBStyleFromString("237,64,35").Println(outStr)
 	} else {
-		outstr := fmt.Sprintf("[ %s | %s | %s | %d | %d | %s ]", out.Url, out.Cms, out.Server, out.StatusCode, out.Length, out.Title)
-		fmt.Println(outstr)
+		outStr := fmt.Sprintf("[ %s | %s | %s | %d | %d | %s ]", out.Url, out.Cms, out.Server, out.StatusCode, out.Length, out.Title)
+		fmt.Println(outStr)
 	}
 
 	return out, nil
@@ -75,13 +75,13 @@ func removeDuplicates(arr []string) []string {
 		wordsString[arr[i]] = true
 	}
 	var desiredOutput []string
-	for j, _ := range wordsString {
+	for j := range wordsString {
 		desiredOutput = append(desiredOutput, j)
 	}
 	return desiredOutput
 }
 
-func (s *FinScan) cmsFinger(fin config.Fingerprint, data *request.Resps) string {
+func (s *FinScan) cmsFinger(fin config.Fingerprint, data *request.Response) string {
 	headers := MapToJson(data.Header)
 	switch fin.Location {
 	case "body":
