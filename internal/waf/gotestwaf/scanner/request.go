@@ -8,16 +8,16 @@
  *
  */
 
-package waf
+package scanner
 
 import (
 	"context"
 	"crypto/tls"
 	"fmt"
 	"github.com/NSObjects/scout/internal/finger/ehole/request"
-	"github.com/NSObjects/scout/internal/waf/config"
-	"github.com/NSObjects/scout/internal/waf/encoder"
-	"github.com/NSObjects/scout/internal/waf/placeholder"
+	"github.com/NSObjects/scout/internal/waf/gotestwaf/config"
+	"github.com/NSObjects/scout/internal/waf/gotestwaf/encoder"
+	"github.com/NSObjects/scout/internal/waf/gotestwaf/placeholder"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
@@ -102,7 +102,6 @@ func (c *HTTPClient) Send(
 	if err != nil {
 		return Resp{}, errors.Wrap(err, "apply placeholder")
 	}
-
 	req = req.WithContext(ctx)
 
 	for header, value := range c.headers {

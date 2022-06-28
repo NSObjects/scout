@@ -1,0 +1,49 @@
+/*
+ *
+ * urlpatg.go
+ * placeholder
+ *
+ * Created by lintao on 2022/6/28 3:12 PM
+ * Copyright © 2020-2022 LINTAO. All rights reserved.
+ *
+ */
+
+package placeholder
+
+import (
+	"net/http"
+	"net/url"
+)
+
+type URLPath struct {
+	name string
+}
+
+var DefaultURLPath = URLPath{name: "URLPath"}
+
+func (p URLPath) GetName() string {
+	return p.name
+}
+
+func (p URLPath) CreateRequest(requestURL, payload string) (*http.Request, error) {
+	reqURL, err := url.Parse(requestURL)
+	if err != nil {
+		return nil, err
+	}
+
+	urlWithPayload := reqURL.String()
+	for i := len(urlWithPayload) - 1; i >= 0; i-- {
+		if urlWithPayload[i] != '/' {
+			urlWithPayload = urlWithPayload[:i+1]
+			break
+		}
+	}
+	urlWithPayload += "/" + payload
+
+	req, err := http.NewRequest("GET", urlWithPayload, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}

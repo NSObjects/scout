@@ -11,8 +11,6 @@
 package placeholder
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"net/http"
 )
 
@@ -28,6 +26,16 @@ var Placeholders map[string]Placeholder
 func init() {
 	Placeholders = make(map[string]Placeholder)
 	Placeholders[DefaultURLParam.GetName()] = DefaultURLParam
+	Placeholders[DefaultHeader.GetName()] = DefaultHeader
+	Placeholders[DefaultHTMLForm.GetName()] = DefaultHTMLForm
+	Placeholders[DefaultHTMLMultipartForm.GetName()] = DefaultHTMLMultipartForm
+	Placeholders[DefaultJSONBody.GetName()] = DefaultJSONBody
+	Placeholders[DefaultJSONRequest.GetName()] = DefaultJSONRequest
+	Placeholders[DefaultRequestBody.GetName()] = DefaultRequestBody
+	Placeholders[DefaultSOAPBody.GetName()] = DefaultSOAPBody
+	Placeholders[DefaultURLParam.GetName()] = DefaultURLParam
+	Placeholders[DefaultURLPath.GetName()] = DefaultURLPath
+	Placeholders[DefaultXMLBody.GetName()] = DefaultXMLBody
 
 }
 
@@ -42,12 +50,4 @@ func Apply(host, placeholder, data string) (*http.Request, error) {
 	}
 
 	return req, nil
-}
-
-func RandomHex(n int) (string, error) {
-	bytes := make([]byte, n)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(bytes), nil
 }

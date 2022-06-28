@@ -10,7 +10,9 @@
 
 package pkg
 
-import "github.com/NSObjects/scout/internal/finger"
+import (
+	"github.com/NSObjects/scout/internal/finger"
+)
 
 type PluginCDN interface {
 	Lookup(ip string) (bool, error)
@@ -18,4 +20,8 @@ type PluginCDN interface {
 
 type PluginFinger interface {
 	Scan(url string) (finger.ScanResult, error)
+}
+
+type PluginWaf interface {
+	WafCheck(url string) (bool, error)
 }
