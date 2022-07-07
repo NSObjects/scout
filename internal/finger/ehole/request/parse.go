@@ -139,28 +139,25 @@ func jsJump(str string, url string) []string {
 	regs := []string{`(window|top)\.location\.href = "(.*?)"`, `redirectUrl = "(.*?)"`, `<meta.*?http-equiv=.*?refresh.*?Url=(.*?)>`}
 	var results []string
 	for _, reg := range regs {
-		result1 := regexps(reg, str)
-		if result1 != nil {
-			if len(result1) > 0 {
-				for _, m := range result1 {
-					s := len(m)
-					if strings.Contains(m[s-1], "http") {
-						continue
-					} else {
-						str2 := strings.Trim(m[s-1], "/")
-						str2 = strings.ReplaceAll(str2, "../", "/")
-						if len(str2) == 0 {
-							continue
-						}
-						if str2[:1] == "/" {
-							results = append(results, url+str2)
-						} else {
-							results = append(results, url+"/"+str2)
-						}
-					}
-				}
-			} else {
+		result := regexps(reg, str)
+		if result == nil {
+			continue
+		}
+
+		for _, m := range result {
+			s := len(m)
+			if strings.Contains(m[s-1], "http") {
 				continue
+			}
+			str2 := strings.Trim(m[s-1], "/")
+			str2 = strings.ReplaceAll(str2, "../", "/")
+			if len(str2) == 0 {
+				continue
+			}
+			if str2[:1] == "/" {
+				results = append(results, url+str2)
+			} else {
+				results = append(results, url+"/"+str2)
 			}
 		}
 	}

@@ -58,12 +58,9 @@ func (s *FinScan) Scan(url string) (finger.ScanResult, error) {
 	cmss := strings.Join(removeDuplicates(cms), ",")
 
 	out := finger.ScanResult{Url: data.Url, Cms: cmss, Server: data.Server, StatusCode: data.StatusCode, Length: data.Length, Title: data.Title}
-	if len(out.Cms) != 0 {
+	if len(out.Cms) > 0 {
 		outStr := fmt.Sprintf("[ %s | %s | %s | %d | %d | %s ]", out.Url, out.Cms, out.Server, out.StatusCode, out.Length, out.Title)
 		color.RGBStyleFromString("237,64,35").Println(outStr)
-	} else {
-		outStr := fmt.Sprintf("[ %s | %s | %s | %d | %d | %s ]", out.Url, out.Cms, out.Server, out.StatusCode, out.Length, out.Title)
-		fmt.Println(outStr)
 	}
 
 	return out, nil
