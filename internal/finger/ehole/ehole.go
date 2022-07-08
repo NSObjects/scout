@@ -17,6 +17,7 @@ import (
 	"github.com/NSObjects/scout/internal/finger/ehole/request"
 	"github.com/NSObjects/scout/internal/workpool"
 	"github.com/NSObjects/scout/pkg"
+	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
@@ -50,14 +51,20 @@ func (s *FinScan) Scan(addr string) (finger.ScanResult, error) {
 	}
 
 	data, err := request.Request(addr, s.Proxy)
-	if err != nil {
+
+	if err != nil || data.StatusCode != http.StatusOK {
 		if parse.Scheme == "https" {
 			addr = strings.Replace(addr, "https", "http", 1)
 		} else {
 			addr = strings.Replace(addr, "http", "https", 1)
 		}
-		if data, err = request.Request(addr, s.Proxy); err != nil {
+
+		d, err := request.Request(addr, s.Proxy)
+		if err != nil && data == nil {
 			return finger.ScanResult{}, err
+		}
+		if d != nil {
+			data = d
 		}
 	}
 	pool := workpool.NewWorkerPool(20)
