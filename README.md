@@ -4,7 +4,7 @@
 go 1.18 以上
 
 ```
-go install github.com/NSObjects/scout
+go install github.com/NSObjects/scout@latest
 ```
 
 
