@@ -1,4 +1,22 @@
 
+### 安装：
+```
+go github.com/NSObjects/scout
+```
+
+## 指纹识别
+
+-u 目标网址多个地址使用,分割
+
+-p 代理
+
+-c 并发,默认5
+
+```
+scout finger -u https://www.baidu.com,xxxx.com -p https://proxy.com -c 10
+```
+
+go install 
 
 - [x]  CDN检测
 
