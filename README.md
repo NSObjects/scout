@@ -1,8 +1,13 @@
 
 ### 安装：
+
+go 1.18 以上
+
 ```
-go github.com/NSObjects/scout
+go install github.com/NSObjects/scout
 ```
+
+
 
 ## 指纹识别
 
