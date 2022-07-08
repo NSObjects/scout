@@ -16,10 +16,13 @@ import (
 	"github.com/NSObjects/scout/internal/finger"
 	"github.com/NSObjects/scout/internal/finger/ehole/config"
 	"github.com/NSObjects/scout/internal/finger/ehole/request"
+	"github.com/NSObjects/scout/internal/workpool"
 	"github.com/NSObjects/scout/pkg"
 	"github.com/gookit/color"
+	"net/url"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 type FinScan struct {
@@ -33,27 +36,50 @@ func NewFingerScan(proxy string) pkg.PluginFinger {
 	}
 	r, err := config.WebFingerRule()
 	if err != nil {
-		return nil
+		panic(err)
 	}
 	s.Rule = r
 	return s
 }
 
-func (s *FinScan) Scan(url string) (finger.ScanResult, error) {
-	data, err := request.Request(url, s.Proxy)
+func (s *FinScan) Scan(addr string) (finger.ScanResult, error) {
+	parse, err := url.Parse(addr)
 	if err != nil {
-		url = strings.ReplaceAll(url, "https://", "http://")
-		if data, err = request.Request(url, s.Proxy); err != nil {
+		return finger.ScanResult{}, err
+	}
+
+	if parse.Scheme != "http" && parse.Scheme != "https" {
+		addr = "http://" + addr
+	}
+
+	data, err := request.Request(addr, s.Proxy)
+	if err != nil {
+		if parse.Scheme == "https" {
+			addr = "http://" + addr
+		} else {
+			addr = "https://" + addr
+		}
+		if data, err = request.Request(addr, s.Proxy); err != nil {
 			return finger.ScanResult{}, err
 		}
 	}
+	pool := workpool.NewWorkerPool(20)
+	pool.Run()
+	var wg sync.WaitGroup
 
 	var cms []string
 	for _, fin := range s.Rule.Fingerprint {
-		if c := s.cmsFinger(fin, data); c != "" {
-			cms = append(cms, c)
-		}
+		wg.Add(1)
+		fi := fin
+		pool.AddTask(func() {
+			if c := s.cmsFinger(fi, data); c != "" {
+				cms = append(cms, c)
+			}
+			wg.Done()
+		})
 	}
+	wg.Wait()
+	pool.Stop()
 
 	cmss := strings.Join(removeDuplicates(cms), ",")
 

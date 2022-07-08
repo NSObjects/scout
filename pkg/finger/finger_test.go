@@ -44,7 +44,34 @@ func Test_fingerCheck_Scan(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "指纹识别",
+			args: args{url: "http://xoa.xueersi.org"},
+			want: finger.ScanResult{
+				Url:        "http://xoa.xueersi.org",
+				Cms:        "泛微 OA",
+				Server:     "openresty",
+				StatusCode: 200,
+				Length:     3345,
+				Title:      "",
+			},
+			wantErr: false,
+		},
+		{
+			name: "指纹识别",
+			args: args{url: "https://template.pageadmin.net/"},
+			want: finger.ScanResult{
+				Url:        "https://template.pageadmin.net/",
+				Cms:        "泛微 OA",
+				Server:     "openresty",
+				StatusCode: 200,
+				Length:     3345,
+				Title:      "",
+			},
+			wantErr: false,
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			f := NewFinger()
@@ -53,6 +80,7 @@ func Test_fingerCheck_Scan(t *testing.T) {
 				t.Errorf("Scan() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Scan() got = %v, want %v", got, tt.want)
 			}

@@ -30,8 +30,8 @@ var client = resty.New()
 
 func init() {
 	client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
-
 	client.SetTimeout(10 * time.Second)
+
 }
 
 func title(httpBody string) string {

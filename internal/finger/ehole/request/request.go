@@ -11,6 +11,7 @@
 package request
 
 import (
+	"github.com/NSObjects/scout/internal/finger/ehole/encoding"
 	"net/http"
 )
 
@@ -47,7 +48,7 @@ func Request(address string, proxy string) (*Response, error) {
 		return nil, err
 	}
 
-	httpBody := resp.String()
+	httpBody := encoding.Utf8(resp.String(), resp.Header().Get("Content-Type"))
 
 	server := "None"
 
