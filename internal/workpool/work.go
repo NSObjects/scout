@@ -10,27 +10,32 @@
 
 package workpool
 
+import "sync"
+
 type WorkerPool interface {
-	Run()
 	AddTask(task func())
 	Stop()
+	Wait()
 }
 
 type work struct {
 	workerCount int
 	taskChan    chan func()
 	close       chan struct{}
+	wg          sync.WaitGroup
 }
 
 func NewWorkerPool(workerCount int) WorkerPool {
-	return &work{
+	wk := &work{
 		workerCount: workerCount,
 		taskChan:    make(chan func()),
 		close:       make(chan struct{}),
 	}
+	wk.run()
+	return wk
 }
 
-func (w *work) Run() {
+func (w *work) run() {
 	for i := 0; i < w.workerCount; i++ {
 		go func() {
 			for {
@@ -39,13 +44,20 @@ func (w *work) Run() {
 					return
 				case task := <-w.taskChan:
 					task()
+					w.wg.Done()
 				}
 			}
 		}()
 	}
 }
 
+func (w *work) Wait() {
+	w.wg.Wait()
+	w.close <- struct{}{}
+}
+
 func (w *work) AddTask(task func()) {
+	w.wg.Add(1)
 	w.taskChan <- task
 }
 

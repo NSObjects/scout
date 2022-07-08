@@ -12,17 +12,14 @@ package ehole
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/NSObjects/scout/internal/finger"
 	"github.com/NSObjects/scout/internal/finger/ehole/config"
 	"github.com/NSObjects/scout/internal/finger/ehole/request"
 	"github.com/NSObjects/scout/internal/workpool"
 	"github.com/NSObjects/scout/pkg"
-	"github.com/gookit/color"
 	"net/url"
 	"regexp"
 	"strings"
-	"sync"
 )
 
 type FinScan struct {
@@ -49,46 +46,36 @@ func (s *FinScan) Scan(addr string) (finger.ScanResult, error) {
 	}
 
 	if parse.Scheme != "http" && parse.Scheme != "https" {
-		addr = "http://" + addr
+		addr = "https://" + addr
 	}
 
 	data, err := request.Request(addr, s.Proxy)
 	if err != nil {
 		if parse.Scheme == "https" {
-			addr = "http://" + addr
+			addr = strings.Replace(addr, "https", "http", 1)
 		} else {
-			addr = "https://" + addr
+			addr = strings.Replace(addr, "http", "https", 1)
 		}
 		if data, err = request.Request(addr, s.Proxy); err != nil {
 			return finger.ScanResult{}, err
 		}
 	}
 	pool := workpool.NewWorkerPool(20)
-	pool.Run()
-	var wg sync.WaitGroup
 
 	var cms []string
 	for _, fin := range s.Rule.Fingerprint {
-		wg.Add(1)
 		fi := fin
 		pool.AddTask(func() {
 			if c := s.cmsFinger(fi, data); c != "" {
 				cms = append(cms, c)
 			}
-			wg.Done()
 		})
 	}
-	wg.Wait()
-	pool.Stop()
+	pool.Wait()
 
 	cmss := strings.Join(removeDuplicates(cms), ",")
 
 	out := finger.ScanResult{Url: data.Url, Cms: cmss, Server: data.Server, StatusCode: data.StatusCode, Length: data.Length, Title: data.Title}
-	if len(out.Cms) > 0 {
-		outStr := fmt.Sprintf("[ %s | %s | %s | %d | %d | %s ]", out.Url, out.Cms, out.Server, out.StatusCode, out.Length, out.Title)
-		color.RGBStyleFromString("237,64,35").Println(outStr)
-	}
-
 	return out, nil
 }
 

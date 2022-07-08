@@ -74,8 +74,8 @@ func Test_fingerCheck_Scan(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := NewFinger()
-			got, err := f.Scan(tt.args.url)
+			f := NewFinger([]string{tt.args.url}, "", 0)
+			got, err := f.Scan()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Scan() error = %v, wantErr %v", err, tt.wantErr)
 				return

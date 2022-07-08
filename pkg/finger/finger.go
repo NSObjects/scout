@@ -11,33 +11,45 @@
 package finger
 
 import (
-	"fmt"
 	"github.com/NSObjects/scout/internal/finger"
+	"github.com/NSObjects/scout/internal/workpool"
 	"github.com/NSObjects/scout/pkg"
 	"github.com/NSObjects/scout/pkg/plugin"
 )
 
 type Finger interface {
-	Scan(url string) (finger.ScanResult, error)
+	Scan() ([]finger.ScanResult, error)
 }
 
 type fingerCheck struct {
-	plugins []pkg.PluginFinger
+	plugins     []pkg.PluginFinger
+	urls        []string
+	proxy       string
+	concurrency int
 }
 
-func NewFinger() Finger {
-	return fingerCheck{plugins: plugin.DefaultFinger}
+func NewFinger(urls []string, proxy string, c int) Finger {
+	return fingerCheck{plugins: plugin.DefaultFinger, proxy: proxy, urls: urls, concurrency: c}
 }
 
-func (f fingerCheck) Scan(url string) (finger.ScanResult, error) {
-	for _, v := range f.plugins {
-		scan, err := v.Scan(url)
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		return scan, nil
+func (f fingerCheck) Scan() ([]finger.ScanResult, error) {
+	wp := workpool.NewWorkerPool(f.concurrency)
+	var results []finger.ScanResult
 
+	for _, u := range f.urls {
+		url := u
+		wp.AddTask(func() {
+			for _, plugin := range f.plugins {
+				result, err := plugin.Scan(url)
+				if err != nil {
+					continue
+				}
+				results = append(results, result)
+			}
+
+		})
 	}
-	return finger.ScanResult{}, nil
+	wp.Wait()
+
+	return results, nil
 }
